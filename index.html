@@ -10,16 +10,46 @@
   <aside class="sidebar">
     <div class="brand"><span>TP</span><div>Tax Property<br><small>Management</small></div></div>
     <nav>
-      <button class="nav active" data-view="dashboard">▦ Dashboard</button><button class="nav" data-view="signs">▤ ทะเบียนภาษีป้าย</button><button class="nav" data-view="land">▤ ทะเบียนภาษีที่ดิน</button><button class="nav" data-view="rates">٪ อัตราและเงื่อนไข</button><button class="nav" data-view="reports">↗ รายงาน</button>
-    </nav><div class="side-note">Firebase Free tier<br><small id="syncStatus">กำลังเชื่อมฐานข้อมูล…</small></div>
+      <button class="nav active" data-view="dashboard">▦ Dashboard</button>
+      <button class="nav" data-view="signs">▤ ทะเบียนภาษีป้าย</button>
+      <button class="nav" data-view="land">▤ ทะเบียนภาษีที่ดิน</button>
+      <button class="nav" data-view="rates">٪ อัตราและเงื่อนไข</button>
+      <button class="nav" data-view="reports">↗ รายงาน</button>
+    </nav>
+    <div class="side-note">Firebase Free tier<br><small id="syncStatus">กำลังเชื่อมฐานข้อมูล…</small></div>
   </aside>
   <main>
     <header><div><p class="eyebrow">ปีภาษี</p><select id="taxYear"><option>2569</option><option>2568</option></select></div><div class="header-actions"><button class="secondary" id="copyYear">คัดลอกจากปีก่อน</button><button class="primary" id="export">Export Excel (CSV)</button></div></header>
-    <section id="dashboard" class="view active"><div class="title-row"><div><h1>ภาพรวมภาษี ปี 2569</h1><p>ติดตามรายการป้ายและที่ดิน พร้อมตรวจสอบความเปลี่ยนแปลงจากปีก่อน</p></div><button class="primary go-add" data-type="sign">+ เพิ่มรายการป้าย</button></div><div class="cards"><article class="card blue"><p>ภาษีป้าย</p><h2 id="signTotal">฿0</h2><small id="signCompare">—</small></article><article class="card teal"><p>ภาษีที่ดินและสิ่งปลูกสร้าง</p><h2 id="landTotal">฿0</h2><small id="landCompare">—</small></article><article class="card amber"><p>รายการรอตรวจสอบ</p><h2 id="pending">0</h2><small>กรุณาตรวจเอกสาร/ข้อมูล</small></article><article class="card white"><p>สถานะชำระแล้ว</p><h2 id="paid">0%</h2><small>ของยอดภาษีทั้งหมด</small></article></div><div class="panel"><div class="panel-head"><h2>รายการล่าสุด</h2><button class="link go-view" data-view="signs">ดูทะเบียนป้าย →</button></div><div id="recent"></div></div></section>
-    <section id="signs" class="view"><div class="title-row"><div><h1>ทะเบียนภาษีป้าย</h1><p>จัดเก็บรูปภาพ ขนาด หมวด และผลคำนวณของป้ายแต่ละรายการ</p></div><button class="primary go-add" data-type="sign">+ เพิ่มป้าย</button></div><div class="panel"><div class="filters"><input id="signSearch" placeholder="ค้นหารหัสป้าย / สถานที่ / เจ้าของป้าย" /><select id="signStatus"><option value="">ทุกสถานะ</option><option>รอตรวจสอบ</option><option>ตรวจสอบแล้ว</option><option>ชำระแล้ว</option></select></div><div class="table-wrap"><table><thead><tr><th>รูป</th><th>รหัส / รายละเอียด</th><th>เจ้าของ</th><th>สถานที่</th><th>ขนาด × จำนวน</th><th>ขนาดรวม</th><th>หมวด / อัตรา</th><th>ภาษี</th><th>สถานะ</th><th></th></tr></thead><tbody id="signRows"></tbody></table></div></div></section>
-    <section id="land" class="view"><div class="title-row"><div><h1>ทะเบียนภาษีที่ดินและสิ่งปลูกสร้าง</h1><p>เก็บโฉนด พื้นที่ การใช้ประโยชน์ ราคาประเมิน และค่าเสื่อม</p></div><button class="primary go-add" data-type="land">+ เพิ่มที่ดิน</button></div><div class="panel"><div class="table-wrap"><table><thead><tr><th>เลขโฉนด</th><th>ที่ตั้ง / โครงการ</th><th>พื้นที่</th><th>การใช้ประโยชน์</th><th>ราคาประเมิน</th><th>ภาษี</th><th>สถานะ</th><th></th></tr></thead><tbody id="landRows"></tbody></table></div></div></section>
+
+    <section id="dashboard" class="view active">
+      <div class="title-row"><div><h1>ภาพรวมภาษี ปี 2569</h1><p>ติดตามรายการป้ายและที่ดิน พร้อมตรวจสอบความเปลี่ยนแปลงจากปีก่อน</p></div><button class="primary go-add" data-type="sign">+ เพิ่มรายการป้าย</button></div>
+      <div class="cards">
+        <article class="card blue"><p>ภาษีป้าย</p><h2 id="signTotal">฿0</h2><small id="signCompare">—</small></article>
+        <article class="card teal"><p>ภาษีที่ดินและสิ่งปลูกสร้าง</p><h2 id="landTotal">฿0</h2><small id="landCompare">—</small></article>
+        <article class="card amber"><p>รายการรอตรวจสอบ</p><h2 id="pending">0</h2><small>กรุณาตรวจเอกสาร/ข้อมูล</small></article>
+        <article class="card white"><p>สถานะชำระแล้ว</p><h2 id="paid">0%</h2><small>ของยอดภาษีทั้งหมด</small></article>
+      </div>
+      <div class="panel"><div class="panel-head"><h2>รายการล่าสุด</h2><button class="link go-view" data-view="signs">ดูทะเบียนป้าย →</button></div><div id="recent"></div></div>
+    </section>
+
+    <section id="signs" class="view">
+      <div class="title-row"><div><h1>ทะเบียนภาษีป้าย</h1><p>จัดเก็บรูปภาพ ขนาด หมวด และผลคำนวณของป้ายแต่ละรายการ</p></div><button class="primary go-add" data-type="sign">+ เพิ่มป้าย</button></div>
+      <div class="panel"><div class="filters"><input id="signSearch" placeholder="ค้นหารหัสป้าย / สถานที่ / เจ้าของป้าย" /><select id="signStatus"><option value="">ทุกสถานะ</option><option>รอตรวจสอบ</option><option>ตรวจสอบแล้ว</option><option>ชำระแล้ว</option></select></div><div class="table-wrap"><table><thead><tr><th>รูป</th><th>รหัส / รายละเอียด</th><th>เจ้าของ</th><th>สถานที่</th><th>ขนาด × จำนวน</th><th>ขนาดรวม</th><th>หมวด / อัตรา</th><th>ภาษี</th><th>สถานะ</th><th></th></tr></thead><tbody id="signRows"></tbody></table></div></div>
+    </section>
+
+    <section id="land" class="view">
+      <div class="title-row"><div><h1>ทะเบียนภาษีที่ดินและสิ่งปลูกสร้าง</h1><p>เก็บโฉนด พื้นที่ การใช้ประโยชน์ ราคาประเมิน และค่าเสื่อม</p></div><button class="primary go-add" data-type="land">+ เพิ่มที่ดิน</button></div>
+      <div class="panel"><div class="table-wrap"><table><thead><tr><th>เลขโฉนด</th><th>ที่ตั้ง / โครงการ</th><th>พื้นที่</th><th>การใช้ประโยชน์</th><th>ราคาประเมิน</th><th>ภาษี</th><th>สถานะ</th><th></th></tr></thead><tbody id="landRows"></tbody></table></div></div>
+    </section>
+
     <section id="rates" class="view"><div class="title-row"><div><h1>อัตราและเงื่อนไข</h1><p>อัตราภาษีป้ายที่ใช้คำนวณในปีภาษีปัจจุบัน</p></div></div><div class="panel settings"><h2>อัตราภาษีป้าย</h2><p>ระบบคิดจาก <b>ขนาดรวม (ตร.ซม.) ÷ 500</b> ปัดเศษขึ้น × อัตราภาษี และกำหนดขั้นต่ำ 200 บาทต่อป้าย</p><table><thead><tr><th>หมวด</th><th>อัตราต่อ 500 ตร.ซม.</th><th>คำอธิบาย</th></tr></thead><tbody id="rateRows"></tbody></table></div></section>
+
     <section id="reports" class="view"><div class="title-row"><div><h1>รายงานและส่งออก</h1><p>สร้างไฟล์เพื่อ review, approval และยื่นชำระภาษี</p></div></div><div class="report-grid"><div class="panel"><h2>ทะเบียนภาษีป้าย</h2><p>ดาวน์โหลดรายการพร้อมขนาด หมวด อัตรา และภาษี</p><button class="primary export-type" data-type="sign">Export CSV</button></div><div class="panel"><h2>ทะเบียนภาษีที่ดิน</h2><p>ดาวน์โหลดรายการโฉนด พื้นที่ ราคาประเมิน และยอดภาษี</p><button class="primary export-type" data-type="land">Export CSV</button></div></div></section>
-  </main><dialog id="recordModal"><form method="dialog" id="recordForm"><div class="modal-head"><h2 id="modalTitle">เพิ่มรายการ</h2><button class="icon">×</button></div><div id="formFields" class="form-grid"></div><div class="form-actions"><button value="cancel" class="secondary">ยกเลิก</button><button class="primary" id="saveRecord" value="default">บันทึกข้อมูล</button></div></form></dialog>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script><script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script><script src="app.js"></script>
-</body></html>
+  </main>
+  <dialog id="recordModal"><form method="dialog" id="recordForm"><div class="modal-head"><h2 id="modalTitle">เพิ่มรายการ</h2><button class="icon">×</button></div><div id="formFields" class="form-grid"></div><div class="form-actions"><button value="cancel" class="secondary">ยกเลิก</button><button class="primary" id="saveRecord" value="default">บันทึกข้อมูล</button></div></form></dialog>
+  <!-- Firebase SDK (compat version works directly with a static GitHub Pages site) -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
