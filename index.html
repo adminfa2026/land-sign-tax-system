@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tax Property Manager</title>
-  <link rel="stylesheet" href="styles.css" />
+  <link rel="stylesheet" href="styles.css?v=20260722-admin" />
 </head>
 <body>
   <aside class="sidebar">
@@ -16,13 +16,13 @@
       <button class="nav" data-view="rates">٪ อัตราและเงื่อนไข</button>
       <button class="nav" data-view="reports">↗ รายงาน</button>
     </nav>
-    <div class="side-note">Firebase Free tier<br><small id="syncStatus">กำลังเชื่อมฐานข้อมูล…</small></div>
+    <div class="side-note">Firebase Free tier<br><small id="syncStatus">กำลังเชื่อมฐานข้อมูล…</small><button class="side-login" id="loginButton">Admin login</button><button class="side-login hidden" id="logoutButton">ออกจากระบบ</button></div>
   </aside>
   <main>
-    <header><div><p class="eyebrow">ปีภาษี</p><select id="taxYear"><option>2569</option><option>2568</option></select></div><div class="header-actions"><button class="secondary" id="copyYear">คัดลอกจากปีก่อน</button><button class="primary" id="export">Export Excel (CSV)</button></div></header>
+    <header><div><p class="eyebrow">ปีภาษี</p><select id="taxYear"><option>2569</option></select></div><div class="header-actions"><button class="secondary admin-only" id="copyYear">คัดลอกจากปีก่อน</button><button class="primary" id="export">Export Excel (CSV)</button></div></header>
 
     <section id="dashboard" class="view active">
-      <div class="title-row"><div><h1>ภาพรวมภาษี ปี 2569</h1><p>ติดตามรายการป้ายและที่ดิน พร้อมตรวจสอบความเปลี่ยนแปลงจากปีก่อน</p></div><button class="primary go-add" data-type="sign">+ เพิ่มรายการป้าย</button></div>
+      <div class="title-row"><div><h1>ภาพรวมภาษี ปี 2569</h1><p>ติดตามรายการป้ายและที่ดิน พร้อมตรวจสอบความเปลี่ยนแปลงจากปีก่อน</p></div><button class="primary go-add admin-only" data-type="sign">+ เพิ่มรายการป้าย</button></div>
       <div class="cards">
         <article class="card blue"><p>ภาษีป้าย</p><h2 id="signTotal">฿0</h2><small id="signCompare">—</small></article>
         <article class="card teal"><p>ภาษีที่ดินและสิ่งปลูกสร้าง</p><h2 id="landTotal">฿0</h2><small id="landCompare">—</small></article>
@@ -33,12 +33,12 @@
     </section>
 
     <section id="signs" class="view">
-      <div class="title-row"><div><h1>ทะเบียนภาษีป้าย</h1><p>จัดเก็บรูปภาพ ขนาด หมวด และผลคำนวณของป้ายแต่ละรายการ</p></div><button class="primary go-add" data-type="sign">+ เพิ่มป้าย</button></div>
+      <div class="title-row"><div><h1>ทะเบียนภาษีป้าย</h1><p>จัดเก็บรูปภาพ ขนาด หมวด และผลคำนวณของป้ายแต่ละรายการ</p></div><button class="primary go-add admin-only" data-type="sign">+ เพิ่มป้าย</button></div>
       <div class="panel"><div class="filters"><input id="signSearch" placeholder="ค้นหารหัสป้าย / สถานที่ / เจ้าของป้าย" /><select id="signStatus"><option value="">ทุกสถานะ</option><option>รอตรวจสอบ</option><option>ตรวจสอบแล้ว</option><option>ชำระแล้ว</option></select></div><div class="table-wrap"><table><thead><tr><th>รูป</th><th>รหัส / รายละเอียด</th><th>เจ้าของ</th><th>สถานที่</th><th>ขนาด × จำนวน</th><th>ขนาดรวม</th><th>หมวด / อัตรา</th><th>ภาษี</th><th>สถานะ</th><th></th></tr></thead><tbody id="signRows"></tbody></table></div></div>
     </section>
 
     <section id="land" class="view">
-      <div class="title-row"><div><h1>ทะเบียนภาษีที่ดินและสิ่งปลูกสร้าง</h1><p>เก็บโฉนด พื้นที่ การใช้ประโยชน์ ราคาประเมิน และค่าเสื่อม</p></div><button class="primary go-add" data-type="land">+ เพิ่มที่ดิน</button></div>
+      <div class="title-row"><div><h1>ทะเบียนภาษีที่ดินและสิ่งปลูกสร้าง</h1><p>เก็บโฉนด พื้นที่ การใช้ประโยชน์ ราคาประเมิน และค่าเสื่อม</p></div><button class="primary go-add admin-only" data-type="land">+ เพิ่มที่ดิน</button></div>
       <div class="panel"><div class="table-wrap"><table><thead><tr><th>เลขโฉนด</th><th>ที่ตั้ง / โครงการ</th><th>พื้นที่</th><th>การใช้ประโยชน์</th><th>ราคาประเมิน</th><th>ภาษี</th><th>สถานะ</th><th></th></tr></thead><tbody id="landRows"></tbody></table></div></div>
     </section>
 
@@ -47,9 +47,11 @@
     <section id="reports" class="view"><div class="title-row"><div><h1>รายงานและส่งออก</h1><p>สร้างไฟล์เพื่อ review, approval และยื่นชำระภาษี</p></div></div><div class="report-grid"><div class="panel"><h2>ทะเบียนภาษีป้าย</h2><p>ดาวน์โหลดรายการพร้อมขนาด หมวด อัตรา และภาษี</p><button class="primary export-type" data-type="sign">Export CSV</button></div><div class="panel"><h2>ทะเบียนภาษีที่ดิน</h2><p>ดาวน์โหลดรายการโฉนด พื้นที่ ราคาประเมิน และยอดภาษี</p><button class="primary export-type" data-type="land">Export CSV</button></div></div></section>
   </main>
   <dialog id="recordModal"><form id="recordForm"><div class="modal-head"><h2 id="modalTitle">เพิ่มรายการ</h2><button type="button" class="icon" id="closeModal" aria-label="ปิดหน้าต่าง">×</button></div><div id="formFields" class="form-grid"></div><div class="form-actions"><button type="button" id="cancelRecord" class="secondary">ยกเลิก</button><button type="submit" class="primary" id="saveRecord">บันทึกข้อมูล</button></div></form></dialog>
+  <dialog id="loginModal"><form id="loginForm"><div class="modal-head"><h2>Admin login</h2><button type="button" class="icon" id="closeLogin" aria-label="ปิดหน้าต่าง">×</button></div><div class="form-grid"><label>Username<input id="username" autocomplete="username" required pattern="[A-Za-z0-9._-]{3,30}" placeholder="เช่น admin"></label><label>Password<input id="password" type="password" autocomplete="current-password" required minlength="6"></label><p id="loginError" class="login-error full-width" role="alert"></p></div><div class="form-actions"><button type="button" id="cancelLogin" class="secondary">ยกเลิก</button><button type="submit" class="primary">เข้าสู่ระบบ</button></div></form></dialog>
   <!-- Firebase SDK (compat version works directly with a static GitHub Pages site) -->
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
-  <script src="app.js"></script>
+  <script src="app.js?v=20260722-admin"></script>
 </body>
 </html>
