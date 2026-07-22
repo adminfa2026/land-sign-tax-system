@@ -16,7 +16,7 @@
       <button class="nav" data-view="rates">٪ อัตราและเงื่อนไข</button>
       <button class="nav" data-view="reports">↗ รายงาน</button>
     </nav>
-    <div class="side-note">Prototype ฟรี<br><small>ข้อมูลอยู่ในเครื่องนี้</small></div>
+    <div class="side-note">Firebase Free tier<br><small id="syncStatus">กำลังเชื่อมฐานข้อมูล…</small></div>
   </aside>
   <main>
     <header><div><p class="eyebrow">ปีภาษี</p><select id="taxYear"><option>2569</option><option>2568</option></select></div><div class="header-actions"><button class="secondary" id="copyYear">คัดลอกจากปีก่อน</button><button class="primary" id="export">Export Excel (CSV)</button></div></header>
@@ -47,6 +47,9 @@
     <section id="reports" class="view"><div class="title-row"><div><h1>รายงานและส่งออก</h1><p>สร้างไฟล์เพื่อ review, approval และยื่นชำระภาษี</p></div></div><div class="report-grid"><div class="panel"><h2>ทะเบียนภาษีป้าย</h2><p>ดาวน์โหลดรายการพร้อมขนาด หมวด อัตรา และภาษี</p><button class="primary export-type" data-type="sign">Export CSV</button></div><div class="panel"><h2>ทะเบียนภาษีที่ดิน</h2><p>ดาวน์โหลดรายการโฉนด พื้นที่ ราคาประเมิน และยอดภาษี</p><button class="primary export-type" data-type="land">Export CSV</button></div></div></section>
   </main>
   <dialog id="recordModal"><form method="dialog" id="recordForm"><div class="modal-head"><h2 id="modalTitle">เพิ่มรายการ</h2><button class="icon">×</button></div><div id="formFields" class="form-grid"></div><div class="form-actions"><button value="cancel" class="secondary">ยกเลิก</button><button class="primary" id="saveRecord" value="default">บันทึกข้อมูล</button></div></form></dialog>
+  <!-- Firebase SDK (compat version works directly with a static GitHub Pages site) -->
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
   <script src="app.js"></script>
 </body>
 </html>
