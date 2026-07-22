@@ -1,5 +1,6 @@
 const key = 'tax-property-prototype-v2';
 const firebaseConfig = {apiKey:'AIzaSyDHqzuk1uJ-cO5lQiHYabtTDH5wMJsJKF4',authDomain:'land-sign-tax-system.firebaseapp.com',projectId:'land-sign-tax-system',storageBucket:'land-sign-tax-system.firebasestorage.app',messagingSenderId:'459116004427',appId:'1:459116004427:web:7509b32a2485a45a3179ce'};
+const adminEmail = 'adminfa@land-sign-tax-system.local';
 
 const signRates = [
   {code:'1ก', rate:10, description:'ป้ายที่มีอักษรไทยล้วน — เคลื่อนที่ได้'},
@@ -22,9 +23,12 @@ function calcSign(x){
   return {totalSize, units, rate, tax: totalSize ? Math.max(200, units * rate) : 0};
 }
 function syncMessage(message){ const el=$('#syncStatus'); if(el) el.textContent=message; }
-function usernameToInternalEmail(username){ return `${username.trim().toLowerCase()}@land-sign-tax-system.local`; }
+function usernameToInternalEmail(username){
+  const value=username.trim().toLowerCase();
+  return value.includes('@') ? value : `${value}@land-sign-tax-system.local`;
+}
 function updateAccess(user){
-  isAdmin=Boolean(user);
+  isAdmin=Boolean(user && user.email===adminEmail);
   document.querySelectorAll('.admin-only').forEach(el=>el.classList.toggle('hidden',!isAdmin));
   $('#loginButton').classList.toggle('hidden',isAdmin); $('#logoutButton').classList.toggle('hidden',!isAdmin);
   if(isAdmin) syncMessage(`Admin: ${user.email.split('@')[0]}`); else syncMessage('โหมดดูข้อมูลและ Export');
@@ -103,7 +107,18 @@ $('#loginForm').onsubmit=async e=>{
   e.preventDefault(); const username=$('#username').value.trim(), password=$('#password').value;
   $('#loginError').textContent='กำลังตรวจสอบ Username และ Password…';
   try { await firebase.auth().signInWithEmailAndPassword(usernameToInternalEmail(username),password); closeLoginModal(); }
-  catch(error){ console.error(error); $('#loginError').textContent='Username หรือ Password ไม่ถูกต้อง'; }
+  catch(error){
+    console.error(error);
+    const messages={
+      'auth/operation-not-allowed':'Firebase ยังไม่ได้เปิดวิธี Email/Password — ไปที่ Authentication → Sign-in method แล้วเปิด Email/Password',
+      'auth/invalid-credential':'Username หรือ Password ไม่ถูกต้อง — บัญชี Admin ต้องเป็น adminfa และสร้างใน Firebase Users เป็น adminfa@land-sign-tax-system.local',
+      'auth/user-not-found':'ไม่พบบัญชี Admin — ตรวจสอบ Firebase Authentication → Users',
+      'auth/wrong-password':'Password ไม่ถูกต้อง',
+      'auth/too-many-requests':'ลองรหัสผิดหลายครั้งเกินไป กรุณารอสักครู่แล้วลองใหม่',
+      'auth/network-request-failed':'ไม่สามารถเชื่อมต่อ Firebase ได้ กรุณาตรวจสอบอินเทอร์เน็ต'
+    };
+    $('#loginError').textContent=messages[error.code] || `เข้าสู่ระบบไม่สำเร็จ (${error.code||'unknown error'})`;
+  }
 };
 $('#recordForm').onsubmit=e=>{ e.preventDefault(); let x=Object.fromEntries(new FormData(e.target)); ['width','length','qty','area','appraisal','tax'].forEach(k=>{if(k in x)x[k]=Number(x[k])}); if(type==='sign'){const inp=$('#imagesInput'); x.images=inp.dataset.images?JSON.parse(inp.dataset.images):(editing?.images||[]); Object.assign(x,calcSign(x));} const arr=db[type==='sign'?'signs':'land'], id=type==='sign'?'id':'deed',at=editing?arr.indexOf(editing):-1; if(at>=0)arr[at]=x;else arr.push(x); save(); closeRecordModal(); render(); };
 function download(t='all'){const arr=t==='sign'?db.signs:t==='land'?db.land:[...db.signs,...db.land];const rows=arr.map(x=>{const y={...x,images:(x.images||[]).length+' ภาพ'};delete y.image;return y});const csv=[Object.keys(rows[0]||{}).join(','),...rows.map(x=>Object.values(x).map(v=>`"${String(v).replaceAll('"','""')}"`).join(','))].join('\n');const a=document.createElement('a');a.href=URL.createObjectURL(new Blob(["\ufeff"+csv],{type:'text/csv'}));a.download=`tax-${t}-2569.csv`;a.click();URL.revokeObjectURL(a.href)}
