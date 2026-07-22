@@ -1,6 +1,6 @@
 const key = 'tax-property-prototype-v2';
 const firebaseConfig = {apiKey:'AIzaSyDHqzuk1uJ-cO5lQiHYabtTDH5wMJsJKF4',authDomain:'land-sign-tax-system.firebaseapp.com',projectId:'land-sign-tax-system',storageBucket:'land-sign-tax-system.firebasestorage.app',messagingSenderId:'459116004427',appId:'1:459116004427:web:7509b32a2485a45a3179ce'};
-const adminEmail = 'adminfa@land-sign-tax-system.local';
+const adminEmail = 'fa@impact.co.th';
 
 const signRates = [
   {code:'1ก', rate:10, description:'ป้ายที่มีอักษรไทยล้วน — เคลื่อนที่ได้'},
@@ -25,10 +25,14 @@ function calcSign(x){
 function syncMessage(message){ const el=$('#syncStatus'); if(el) el.textContent=message; }
 function usernameToInternalEmail(username){
   const value=username.trim().toLowerCase();
-  return value.includes('@') ? value : `${value}@land-sign-tax-system.local`;
+  // The screen accepts the short username "fa" and also the real account
+  // address, so an already-signed-in admin is never redirected to login
+  // merely because of the display username.
+  return value === 'fa' || value === adminEmail.toLowerCase() ? adminEmail : value;
 }
+function hasAdminAccess(user){ return Boolean(user && String(user.email||'').trim().toLowerCase() === adminEmail.toLowerCase()); }
 function updateAccess(user){
-  isAdmin=Boolean(user && user.email===adminEmail);
+  isAdmin=hasAdminAccess(user);
   document.querySelectorAll('.admin-only').forEach(el=>el.classList.toggle('hidden',!isAdmin));
   $('#loginButton').classList.toggle('hidden',isAdmin); $('#logoutButton').classList.toggle('hidden',!isAdmin);
   if(isAdmin) syncMessage(`Admin: ${user.email.split('@')[0]}`); else syncMessage('โหมดดูข้อมูลและ Export');
@@ -50,6 +54,9 @@ function connectFirebase(){
   try {
     if(!window.firebase) throw new Error('Firebase SDK unavailable');
     if(!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    // Explicit persistence prevents a successful login from being discarded
+    // while the user continues to work on the same browser.
+    firebase.auth().setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(error=>console.warn('Auth persistence:',error));
     cloudDb=firebase.firestore();
     firebase.auth().onAuthStateChanged(updateAccess);
     const record=cloudDb.collection('taxData').doc('current');
@@ -89,7 +96,14 @@ function signFields(x={}){ const c=calcSign(x); return `
   <div id="imagePreview" class="image-preview full-width">${thumbnails(x.images)}</div>`; }
 function landFields(x={}){return `<label>เลขโฉนด<input name="deed" required value="${x.deed||''}"></label><label>ที่ตั้ง / โครงการ<input name="name" required value="${x.name||''}"></label><label>พื้นที่ (ตร.ว.)<input type="number" name="area" required value="${x.area||''}"></label><label>การใช้ประโยชน์<input name="use" required value="${x.use||''}"></label><label>ราคาประเมิน<input type="number" name="appraisal" required value="${x.appraisal||''}"></label><label>ภาษี<input type="number" name="tax" required value="${x.tax||''}"></label><label>สถานะ<select name="status">${['รอตรวจสอบ','ตรวจสอบแล้ว','ชำระแล้ว'].map(s=>`<option ${x.status===s?'selected':''}>${s}</option>`).join('')}</select></label>`;}
 function refreshCalculation(){ const form=$('#recordForm'), f=new FormData(form), x={width:+f.get('width')||0,length:+f.get('length')||0,qty:+f.get('qty')||0,category:f.get('category')}; const c=calcSign(x); $('#ratePreview').value=`${fmt(c.rate)} ต่อ 500 ตร.ซม.`; $('#totalSizePreview').value=`${cm(c.totalSize)} ตร.ซม.`; $('#taxPreview').value=fmt(c.tax); }
-function openForm(t,x=null){ if(!isAdmin){ $('#loginModal').showModal(); return; } type=t; editing=x; $('#modalTitle').textContent=(x?'แก้ไข':'เพิ่ม')+(t==='sign'?'รายการป้าย':'รายการที่ดิน'); $('#formFields').innerHTML=t==='sign'?signFields(x||{}):landFields(x||{}); if(t==='sign'){ ['#categorySelect','#widthInput','#lengthInput','#qtyInput'].forEach(s=>$(s).addEventListener('input',refreshCalculation)); $('#imagesInput').addEventListener('change',previewImages); } $('#recordModal').showModal(); }
+function openForm(t,x=null){
+  // Use Firebase's current session as the source of truth as well as the UI
+  // flag. This removes the timing gap between a successful login and the
+  // onAuthStateChanged callback.
+  if(!isAdmin && !hasAdminAccess(firebase.auth().currentUser)){ $('#loginModal').showModal(); return; }
+  isAdmin=true;
+  type=t; editing=x; $('#modalTitle').textContent=(x?'แก้ไข':'เพิ่ม')+(t==='sign'?'รายการป้าย':'รายการที่ดิน'); $('#formFields').innerHTML=t==='sign'?signFields(x||{}):landFields(x||{}); if(t==='sign'){ ['#categorySelect','#widthInput','#lengthInput','#qtyInput'].forEach(s=>$(s).addEventListener('input',refreshCalculation)); $('#imagesInput').addEventListener('change',previewImages); } $('#recordModal').showModal();
+}
 async function compressImage(file){ return new Promise((resolve,reject)=>{ const reader=new FileReader(); reader.onload=()=>{const img=new Image();img.onload=()=>{const max=700, scale=Math.min(1,max/Math.max(img.width,img.height)), canvas=document.createElement('canvas');canvas.width=Math.round(img.width*scale);canvas.height=Math.round(img.height*scale);canvas.getContext('2d').drawImage(img,0,0,canvas.width,canvas.height);resolve(canvas.toDataURL('image/jpeg',.6));};img.onerror=reject;img.src=reader.result;};reader.onerror=reject;reader.readAsDataURL(file); }); }
 async function previewImages(e){ const files=[...e.target.files]; if(files.length>2){ alert('แนบรูปภาพได้สูงสุด 2 ภาพ'); e.target.value=''; return; } try { const images=await Promise.all(files.map(compressImage)); e.target.dataset.images=JSON.stringify(images); $('#imagePreview').innerHTML=thumbnails(images); $('#imageCount').textContent=`พร้อมบันทึก ${images.length} ภาพ`; } catch { alert('ไม่สามารถอ่านไฟล์รูปภาพได้'); } }
 window.openEdit=(t,id)=>openForm(t,db[t==='sign'?'signs':'land'].find(x=>(t==='sign'?x.id:x.deed)===id));
@@ -106,16 +120,27 @@ $('#logoutButton').onclick=()=>firebase.auth().signOut();
 $('#loginForm').onsubmit=async e=>{
   e.preventDefault(); const username=$('#username').value.trim(), password=$('#password').value;
   $('#loginError').textContent='กำลังตรวจสอบ Username และ Password…';
-  try { await firebase.auth().signInWithEmailAndPassword(usernameToInternalEmail(username),password); closeLoginModal(); }
+  try {
+    const credential=await firebase.auth().signInWithEmailAndPassword(usernameToInternalEmail(username),password);
+    if(!hasAdminAccess(credential.user)){
+      await firebase.auth().signOut();
+      throw Object.assign(new Error('not admin'),{code:'auth/not-admin'});
+    }
+    // Apply access immediately, instead of waiting for Firebase's async
+    // observer. This is what lets the next click on Add/Edit work reliably.
+    updateAccess(credential.user);
+    closeLoginModal();
+  }
   catch(error){
     console.error(error);
     const messages={
       'auth/operation-not-allowed':'Firebase ยังไม่ได้เปิดวิธี Email/Password — ไปที่ Authentication → Sign-in method แล้วเปิด Email/Password',
-      'auth/invalid-credential':'Username หรือ Password ไม่ถูกต้อง — บัญชี Admin ต้องเป็น adminfa และสร้างใน Firebase Users เป็น adminfa@land-sign-tax-system.local',
+      'auth/invalid-credential':'Username หรือ Password ไม่ถูกต้อง — กรุณาใช้ Username: fa และ Password ของบัญชี Firebase fa@impact.co.th',
       'auth/user-not-found':'ไม่พบบัญชี Admin — ตรวจสอบ Firebase Authentication → Users',
       'auth/wrong-password':'Password ไม่ถูกต้อง',
       'auth/too-many-requests':'ลองรหัสผิดหลายครั้งเกินไป กรุณารอสักครู่แล้วลองใหม่',
       'auth/network-request-failed':'ไม่สามารถเชื่อมต่อ Firebase ได้ กรุณาตรวจสอบอินเทอร์เน็ต'
+      ,'auth/not-admin':'บัญชีนี้ไม่มีสิทธิ์ Admin'
     };
     $('#loginError').textContent=messages[error.code] || `เข้าสู่ระบบไม่สำเร็จ (${error.code||'unknown error'})`;
   }
